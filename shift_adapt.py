@@ -52,7 +52,7 @@ def Train(X_train,Y_train):
     classifiers = [Dummy_maj, Dummy_strat,RF,GP,ThreeNN,NineNN]
     return classifiers
 
-def ConvertToDataFrameWithModel(val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies):
+def ConvertAccuracyTable(val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies):
     model_names = ['Dummy Classifier with Most-Frequent', 'Dummy Classifier with Stratified', 'Random Forest', 
                    'GaussianProcess','3-NearestNeighbor', '9-NearestNeighbor']
     df = pd.DataFrame({'Classifier': model_names, 'Val-TX':val_accuracies, 'Test1-TX':t1_accuracies,
@@ -101,7 +101,6 @@ def PredictAccuracies(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3):
         i+=1 
     return val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies,weights_adapted
 
-
 def ConvertWeightsToTable(weights):
     data = []
     processed_models = set()
@@ -116,6 +115,7 @@ def ConvertWeightsToTable(weights):
             # Add the first 4 values of the model's list
             for i in range(3):
                 col_name = column_name[i]
+                # slice the 4 corresponding values
                 col_values = values[i*4:(i+1)*4]
                 # Round each value to 2 decimal places
                 col_values_rounded = [round(value, 2) for value in col_values]
@@ -126,6 +126,8 @@ def ConvertWeightsToTable(weights):
             processed_models.add(model)
     df = pd.DataFrame(data)
     return df
+
+
 
 
 if __name__ == "__main__":
@@ -142,15 +144,18 @@ if __name__ == "__main__":
     X_t3,Y_t3 = LoadData('/Users/wadoodalam/ML Models Adapting to Shifts/test3-FL.csv')
     
         
-    # Train all the classifiers with BBSC
+    # Train all the classifiers
     classifiers = Train(X_train,Y_train)
     
     # Get all accuracies without BBSC
     val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies,weights = PredictAccuracies(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3)        
     
     
+    # Convert accuracies to dataframe and output in a csv table to accuracy.csv
+    df_accuracy = ConvertAccuracyTable(val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies)
+    df_accuracy.to_csv('accuracy.csv')
     
-    #df = ConvertToDataFrameWithModel(val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies)
-    df = ConvertWeightsToTable(weights)
-    df.to_csv('test.csv')
+    # Convert weights to dataframe and output in a csv table to weights.csv
+    df_weight = ConvertWeightsToTable(weights)
+    df_weight.to_csv('weights.csv')
     
