@@ -6,6 +6,7 @@ from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.dummy import DummyClassifier
 from sklearn.metrics import accuracy_score
 import warnings
+from label_shift_adaptation import analyze_val_data, update_probs
 warnings.filterwarnings('ignore')
 
 
@@ -36,7 +37,7 @@ def Predict(X,Y,classifier):
     Y_predict = classifier.predict(X)
     # Calculate accuracy in % with 2 decimal places
     accuracy = round(accuracy_score(Y, Y_predict) * 100, 2)
-    return accuracy
+    return accuracy, Y_predict
 
 def Train(X_train,Y_train):
     
@@ -64,31 +65,43 @@ def PredictAccuracies(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3):
     t1_accuracies = []
     t2_accuracies = []
     t3_accuracies = []
-    
+    i = 0
     # Predict and get the accuracy on val set for all models
     for model in classifiers:
         # Predict, using .values to predict using the values, otherwise gives error
-        accuracy = Predict(X_val.values,Y_val.values,model)
+        accuracy,Y_val_predict_var = Predict(X_val.values,Y_val.values,model)
         val_accuracies.append(accuracy)
         
     # Predict and get the accuracy on test set 1 for all models
-    for model in classifiers:
+
         # Predict, using .values to predict using the values, otherwise gives error
-        accuracy = Predict(X_t1.values,Y_t1.values,model)
+        accuracy,Y_t1_predict_var = Predict(X_t1.values,Y_t1.values,model)
+        
         t1_accuracies.append(accuracy)  
     
     # Predict and get the accuracy on test set 2 for all models
-    for model in classifiers:
+
         # Predict, using .values to predict using the values, otherwise gives error
-        accuracy = Predict(X_t2.values,Y_t2.values,model)
+        accuracy,Y_t2_predict_var = Predict(X_t2.values,Y_t2.values,model)
+        
         t2_accuracies.append(accuracy)   
         
     # Predict and get the accuracy on test set 3 for all models
-    for model in classifiers:
         # Predict, using .values to predict using the values, otherwise gives error
-        accuracy = Predict(X_t3.values,Y_t3.values,model)
-        t3_accuracies.append(accuracy)   
+        accuracy,Y_t3_predict_var = Predict(X_t3.values,Y_t3.values,model)
+        
+        t3_accuracies.append(accuracy)  
+        if i > 1 and i<len(classifiers):
+            print(model)
+            print('T1:',analyze_val_data(Y_val,Y_val_predict_var,Y_t1_predict_var))
+            print('T2:',analyze_val_data(Y_val,Y_val_predict_var,Y_t2_predict_var))
+            print('T3:',analyze_val_data(Y_val,Y_val_predict_var,Y_t3_predict_var))
+        i+=1 
     return val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies
+
+
+
+        
 
 
 if __name__ == "__main__":
@@ -104,12 +117,15 @@ if __name__ == "__main__":
     # Load test 3 data
     X_t3,Y_t3 = LoadData('/Users/wadoodalam/ML Models Adapting to Shifts/test3-FL.csv')
     
-    # Train all the classifiers
+        
+    # Train all the classifiers with BBSC
     classifiers = Train(X_train,Y_train)
     
     # Get all accuracies without BBSC
     val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies = PredictAccuracies(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3)        
     
+    pred_test_values = []
     
-    df = ConvertToDataFrameWithModel(val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies)
-    print(df)
+    #df = ConvertToDataFrameWithModel(val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies)
+    #print(df)
+    
