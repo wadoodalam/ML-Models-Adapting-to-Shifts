@@ -66,6 +66,7 @@ def PredictAccuracies(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3):
     t2_accuracies = []
     t3_accuracies = []
     i = 0
+    weights_adapted = {}
     # Predict and get the accuracy on val set for all models
     for model in classifiers:
         # Predict, using .values to predict using the values, otherwise gives error
@@ -91,17 +92,40 @@ def PredictAccuracies(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3):
         accuracy,Y_t3_predict_var = Predict(X_t3.values,Y_t3.values,model)
         
         t3_accuracies.append(accuracy)  
-        if i > 1 and i<len(classifiers):
-            print(model)
-            print('T1:',analyze_val_data(Y_val,Y_val_predict_var,Y_t1_predict_var))
-            print('T2:',analyze_val_data(Y_val,Y_val_predict_var,Y_t2_predict_var))
-            print('T3:',analyze_val_data(Y_val,Y_val_predict_var,Y_t3_predict_var))
+        if i > 1 and i < len(classifiers):
+            weights_adapted[model] = [] 
+            weights_adapted[model].extend([float(val) for val in analyze_val_data(Y_val,Y_val_predict_var,Y_t1_predict_var)])
+            weights_adapted[model].extend([float(val) for val in analyze_val_data(Y_val,Y_val_predict_var,Y_t2_predict_var)])
+            weights_adapted[model].extend([float(val) for val in analyze_val_data(Y_val,Y_val_predict_var,Y_t3_predict_var)])
+                
         i+=1 
-    return val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies
+    return val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies,weights_adapted
 
 
-
+def ConvertWeightsToTable(weights):
+    data = []
+    processed_models = set()
+    column_name = ['Test1-TX', 'Test2-FL', 'Test3-FL']
+    
+    for model, values in weights.items():
+        # Check if the model is not in set
+        if model not in processed_models:
+            # Create a dictionary for each model
+            row = {'Model': model}
+            
+            # Add the first 4 values of the model's list
+            for i in range(3):
+                col_name = column_name[i]
+                col_values = values[i*4:(i+1)*4]
+                # Round each value to 2 decimal places
+                col_values_rounded = [round(value, 2) for value in col_values]
+                row[col_name] = col_values_rounded
+            data.append(row)
         
+            # Add the model to the set
+            processed_models.add(model)
+    df = pd.DataFrame(data)
+    return df
 
 
 if __name__ == "__main__":
@@ -122,10 +146,11 @@ if __name__ == "__main__":
     classifiers = Train(X_train,Y_train)
     
     # Get all accuracies without BBSC
-    val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies = PredictAccuracies(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3)        
+    val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies,weights = PredictAccuracies(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3)        
     
-    pred_test_values = []
+    
     
     #df = ConvertToDataFrameWithModel(val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies)
-    #print(df)
+    df = ConvertWeightsToTable(weights)
+    df.to_csv('test.csv')
     
