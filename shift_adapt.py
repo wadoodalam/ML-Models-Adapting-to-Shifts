@@ -88,6 +88,7 @@ def PredictAccuracies(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3):
     i = 0
     weights_adapted = {}
     GB = classifiers[3]
+    ThreeNN = classifiers[4]
     # Predict and get the accuracy on val set for all models
     for model in classifiers:
         # Predict, using .values to predict using the values, otherwise gives error
@@ -114,6 +115,7 @@ def PredictAccuracies(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3):
 
         t3_accuracies.append(accuracy)
         
+        # Confusion matrices for GB model
         if model == GB:
             conf_matrix_val = confusion_matrix(Y_val,Y_val_predict_var)
             conf_matrix_t1 = confusion_matrix(Y_t1,Y_t1_predict_var)
@@ -123,6 +125,18 @@ def PredictAccuracies(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3):
             print("T1 set conf matrix for GB:\n",conf_matrix_t1)
             print("T2 set conf matrix for GB:\n",conf_matrix_t2)
             print("T3 set conf matrix for GB:\n",conf_matrix_t3)
+        
+        # Confusion matrices for 3-NN model
+        if model == ThreeNN:
+            conf_matrix_val = confusion_matrix(Y_val,Y_val_predict_var)
+            conf_matrix_t1 = confusion_matrix(Y_t1,Y_t1_predict_var)
+            conf_matrix_t2 = confusion_matrix(Y_t2,Y_t2_predict_var)
+            conf_matrix_t3 = confusion_matrix(Y_t3,Y_t3_predict_var)
+            print("Val set conf matrix for 3-NN:\n",conf_matrix_val)
+            print("T1 set conf matrix for 3-NN:\n",conf_matrix_t1)
+            print("T2 set conf matrix for 3-NN:\n",conf_matrix_t2)
+            print("T3 set conf matrix for 3-NN:\n",conf_matrix_t3)
+            
         # Analyze and find weights
         if i > 1 and i < len(classifiers):
             weights_adapted[str(model)] = [] 
@@ -320,9 +334,9 @@ if __name__ == "__main__":
     df_accuracy_BBSC = ConvertAccuracyTableBBSC(t1_acc_BBSC,t2_acc_BBSC,t3_acc_BBSC)
     
     # Uncomment to get csv outputs for both accuracies and weights table
-    #df_accuracy.to_csv('accuracy.csv')
-    #df_weight.to_csv('weights.csv')
-    #df_accuracy_BBSC.to_csv('accuracy_BBSC.csv')
+    df_accuracy.to_csv('accuracy.csv')
+    df_weight.to_csv('weights.csv')
+    df_accuracy_BBSC.to_csv('accuracy_BBSC.csv')
     
     
  
