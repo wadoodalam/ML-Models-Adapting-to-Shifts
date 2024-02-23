@@ -1,0 +1,5 @@
+,Classifier,Test1-TX,Test2-FL,Test3-FL
+0,Random Forest,63.72,44.97,71.42
+1,GaussianProcess,7.28,17.37,2.18
+2,3-NearestNeighbor,32.73,30.82,28.17
+3,9-NearestNeighbor,48.32,38.48,36.11
