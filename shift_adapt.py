@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.dummy import DummyClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
 import warnings
 from label_shift_adaptation import analyze_val_data, update_probs
 import matplotlib.pyplot as plt
@@ -87,6 +87,7 @@ def PredictAccuracies(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3):
     t3_accuracies = []
     i = 0
     weights_adapted = {}
+    GB = classifiers[3]
     # Predict and get the accuracy on val set for all models
     for model in classifiers:
         # Predict, using .values to predict using the values, otherwise gives error
@@ -110,8 +111,19 @@ def PredictAccuracies(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3):
     # Predict and get the accuracy on test set 3 for all models
         # Predict, using .values to predict using the values, otherwise gives error
         accuracy,Y_t3_predict_var = Predict(X_t3,Y_t3,model)
+
+        t3_accuracies.append(accuracy)
         
-        t3_accuracies.append(accuracy)  
+        if model == GB:
+            conf_matrix_val = confusion_matrix(Y_val,Y_val_predict_var)
+            conf_matrix_t1 = confusion_matrix(Y_t1,Y_t1_predict_var)
+            conf_matrix_t2 = confusion_matrix(Y_t2,Y_t2_predict_var)
+            conf_matrix_t3 = confusion_matrix(Y_t3,Y_t3_predict_var)
+            print("Val set conf matrix for GB:\n",conf_matrix_val)
+            print("T1 set conf matrix for GB:\n",conf_matrix_t1)
+            print("T2 set conf matrix for GB:\n",conf_matrix_t2)
+            print("T3 set conf matrix for GB:\n",conf_matrix_t3)
+        # Analyze and find weights
         if i > 1 and i < len(classifiers):
             weights_adapted[str(model)] = [] 
             weights_adapted[str(model)].extend([float(val) for val in analyze_val_data(Y_val,Y_val_predict_var,Y_t1_predict_var)])
@@ -290,7 +302,7 @@ if __name__ == "__main__":
     
    
     
-    '''   
+    
     # Create Bar plot for True labels
     TrueLabelsBarPlot(true_label_val,true_label_t1,true_label_t2,true_label_t3, val_len,t1_len,t2_len,t3_len)
     # Train all the classifiers
@@ -312,5 +324,5 @@ if __name__ == "__main__":
     #df_weight.to_csv('weights.csv')
     #df_accuracy_BBSC.to_csv('accuracy_BBSC.csv')
     
-    '''
+    
  
