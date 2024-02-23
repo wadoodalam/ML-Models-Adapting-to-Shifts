@@ -7,10 +7,11 @@ from sklearn.dummy import DummyClassifier
 from sklearn.metrics import accuracy_score
 import warnings
 from label_shift_adaptation import analyze_val_data, update_probs
+import matplotlib.pyplot as plt
 warnings.filterwarnings('ignore')
 
 
-def LoadData(path):
+def LoadData(path,Train=False):
     # Load data from the path
     data = pd.read_csv(path,usecols=['Distance(mi)', 'Temperature(F)', 'Wind_Chill(F)', 'Humidity(%)',
                      'Pressure(in)', 'Visibility(mi)', 'Wind_Speed(mph)', 'Precipitation(in)',
@@ -25,7 +26,13 @@ def LoadData(path):
                      'Traffic_Signal', 'Turning_Loop']]
     # Assign Y data
     Y = data['Severity']
-    return X,Y
+    if not Train:
+        # get sorted true labels by class
+        true_labels = data['Severity'].value_counts().sort_index()
+ 
+        return X,Y,true_labels,len(Y)
+    else:
+        return X,Y
 
 def TrainModel(X,Y,classifier):
     # train the model
@@ -238,22 +245,54 @@ def PredictAccuraciesBBSC(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3,
     t3_acc_BBSC.append(round(accuracy_score(Y_t3, new_t3_pred_9NN) * 100, 2))
     
     return t1_acc_BBSC, t2_acc_BBSC, t3_acc_BBSC
+
+def Normalize(label,count):
+    normalized = label/count
+    return normalized
+ 
+def TrueLabelsBarPlot(val, t1, t2, t3, val_len, t1_len, t2_len, t3_len):
+    # Normalize the data
+    val_normal = Normalize(val, val_len)
+    t1_normal = Normalize(t1, t1_len)
+    t2_normal = Normalize(t2, t2_len)
+    t3_normal = Normalize(t3, t3_len)
     
-    
+
+    # Concatenate the normalized data into a single DataFrame
+    normalized_df = pd.concat([val_normal, t1_normal, t2_normal, t3_normal], axis=1)
+    normalized_df.columns = ['Validation', 'Test 1', 'Test 2', 'Test 3'] 
+   
+    # Plot the bar plot using pandas
+    ax = normalized_df.plot.bar(figsize=(10, 6))
+
+    # Set labels and title
+    ax.set_xlabel('Classes')
+    ax.set_ylabel('Counts')
+    ax.set_title('True Class Label Distribution (Normalized)')
+
+    # Save the plot to BarPlot.png file
+    ax.legend(title='Dataset', bbox_to_anchor=(1, 1))
+    plt.savefig('BarPlot.png')
+
+
 if __name__ == "__main__":
     
     # Load training data
-    X_train,Y_train = LoadData('/Users/wadoodalam/ML Models Adapting to Shifts/train-TX.csv')
+    X_train,Y_train = LoadData('/Users/wadoodalam/ML Models Adapting to Shifts/train-TX.csv',True)
     # Load val data
-    X_val,Y_val = LoadData('/Users/wadoodalam/ML Models Adapting to Shifts/val-TX.csv')
+    X_val,Y_val,true_label_val, val_len = LoadData('/Users/wadoodalam/ML Models Adapting to Shifts/val-TX.csv')
     # Load test 1 data
-    X_t1,Y_t1 = LoadData('/Users/wadoodalam/ML Models Adapting to Shifts/test1-TX.csv')
+    X_t1,Y_t1,true_label_t1, t1_len = LoadData('/Users/wadoodalam/ML Models Adapting to Shifts/test1-TX.csv')
     # Load test 2 data
-    X_t2,Y_t2 = LoadData('/Users/wadoodalam/ML Models Adapting to Shifts/test2-FL.csv')
+    X_t2,Y_t2,true_label_t2, t2_len = LoadData('/Users/wadoodalam/ML Models Adapting to Shifts/test2-FL.csv')
     # Load test 3 data
-    X_t3,Y_t3 = LoadData('/Users/wadoodalam/ML Models Adapting to Shifts/test3-FL.csv')
+    X_t3,Y_t3,true_label_t3, t3_len = LoadData('/Users/wadoodalam/ML Models Adapting to Shifts/test3-FL.csv')
     
-        
+   
+    
+    '''   
+    # Create Bar plot for True labels
+    TrueLabelsBarPlot(true_label_val,true_label_t1,true_label_t2,true_label_t3, val_len,t1_len,t2_len,t3_len)
     # Train all the classifiers
     classifiers = Train(X_train,Y_train)
     
@@ -273,4 +312,5 @@ if __name__ == "__main__":
     #df_weight.to_csv('weights.csv')
     #df_accuracy_BBSC.to_csv('accuracy_BBSC.csv')
     
-
+    '''
+ 
