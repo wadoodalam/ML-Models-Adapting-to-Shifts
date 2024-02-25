@@ -63,6 +63,8 @@ def Train(X_train,Y_train):
     GP = TrainModel(X_train,Y_train,GaussianProcessClassifier(random_state=0))
     # assign the trained models to a list to return
     classifiers = [Dummy_maj, Dummy_strat,RF,GP,ThreeNN,NineNN]
+    for model in classifiers:
+        print(model, model.get_params())
     return classifiers
 
 def ConvertAccuracyTable(val_accuracies,t1_accuracies,t2_accuracies,t3_accuracies):
