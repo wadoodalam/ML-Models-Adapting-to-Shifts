@@ -114,28 +114,6 @@ def PredictAccuracies(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3):
         accuracy,Y_t3_predict_var = Predict(X_t3,Y_t3,model)
 
         t3_accuracies.append(accuracy)
-        
-        # Confusion matrices for GB model
-        if model == GB:
-            conf_matrix_val = confusion_matrix(Y_val,Y_val_predict_var)
-            conf_matrix_t1 = confusion_matrix(Y_t1,Y_t1_predict_var)
-            conf_matrix_t2 = confusion_matrix(Y_t2,Y_t2_predict_var)
-            conf_matrix_t3 = confusion_matrix(Y_t3,Y_t3_predict_var)
-            print("Val set conf matrix for GB:\n",conf_matrix_val)
-            print("T1 set conf matrix for GB:\n",conf_matrix_t1)
-            print("T2 set conf matrix for GB:\n",conf_matrix_t2)
-            print("T3 set conf matrix for GB:\n",conf_matrix_t3)
-        
-        # Confusion matrices for 3-NN model
-        if model == ThreeNN:
-            conf_matrix_val = confusion_matrix(Y_val,Y_val_predict_var)
-            conf_matrix_t1 = confusion_matrix(Y_t1,Y_t1_predict_var)
-            conf_matrix_t2 = confusion_matrix(Y_t2,Y_t2_predict_var)
-            conf_matrix_t3 = confusion_matrix(Y_t3,Y_t3_predict_var)
-            print("Val set conf matrix for 3-NN:\n",conf_matrix_val)
-            print("T1 set conf matrix for 3-NN:\n",conf_matrix_t1)
-            print("T2 set conf matrix for 3-NN:\n",conf_matrix_t2)
-            print("T3 set conf matrix for 3-NN:\n",conf_matrix_t3)
             
         # Analyze and find weights
         if i > 1 and i < len(classifiers):
@@ -248,6 +226,19 @@ def PredictAccuraciesBBSC(classifiers,X_val,Y_val,X_t1,Y_t1,X_t2,Y_t2,X_t3,Y_t3,
     new_t1_pred_9NN, new_t1_prob_9NN = update_probs(unique_classes,NineNN_weights['T1'],Y_t1_Predict_9NN,Y_t1_Prob_9NN)
     new_t2_pred_9NN, new_t2_prob_9NN = update_probs(unique_classes,NineNN_weights['T2'],Y_t2_Predict_9NN,Y_t2_Prob_9NN)
     new_t3_pred_9NN, new_t3_prob_9NN = update_probs(unique_classes,NineNN_weights['T3'],Y_t3_Predict_9NN,Y_t3_Prob_9NN)
+
+    # Confusion matrices for GB model
+    conf_matrix_t1 = confusion_matrix(Y_t1,new_t1_pred_GP)
+    conf_matrix_t2 = confusion_matrix(Y_t2,new_t2_pred_GP)
+    conf_matrix_t3 = confusion_matrix(Y_t3,new_t3_pred_GP)
+    print("T1 set conf matrix for GB:\n",conf_matrix_t1)
+    print("T2 set conf matrix for GB:\n",conf_matrix_t2)
+    print("T3 set conf matrix for GB:\n",conf_matrix_t3)
+        
+    # Confusion matrices for 3-NN model
+    conf_matrix_t1 = confusion_matrix(Y_t1,new_t1_pred_3NN)
+    print("T1 set conf matrix for 3-NN:\n",conf_matrix_t1)
+ 
 
     # Append all the accuracies in the lists for each test set
     # The indices represent the classifiers by RF,GP,3NN,9NN respectively
